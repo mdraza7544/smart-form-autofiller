@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+*.zip
+
+# testing
+coverage/
+test-results/
+playwright-report/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# env files
+.env
+.env.local
+
+# project planning files
+plan.md
+developmentplan.md

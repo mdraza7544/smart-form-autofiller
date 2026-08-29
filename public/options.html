@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Form Auto-Filler — Settings</title>
+  <link rel="stylesheet" href="../src/options/options.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="app-header__logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <h1>Smart Form Auto-Filler</h1>
+      </div>
+      <span class="app-header__version">v1.0.0</span>
+    </header>
+
+    <!-- Status Banner -->
+    <div class="opt-banner opt-banner--hidden" id="opt-banner" role="status" aria-live="polite"></div>
+
+    <div class="settings-grid">
+
+      <!-- ─── General Settings ────────────────────────────────────────── -->
+      <section class="card" id="section-general">
+        <h2 class="card__title">General Settings</h2>
+
+        <div class="setting-row">
+          <div class="setting-row__label">
+            <span>Auto-fill Enabled</span>
+            <span class="setting-row__hint">Global kill switch for form filling.</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-autofill" checked />
+            <span class="toggle__slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-row__label">
+            <span>Theme</span>
+            <span class="setting-row__hint">Appearance mode for popup.</span>
+          </div>
+          <select id="theme-select" class="opt-select">
+            <option value="SYSTEM">System</option>
+            <option value="LIGHT">Light</option>
+            <option value="DARK">Dark</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- ─── AI Configuration ────────────────────────────────────────── -->
+      <section class="card" id="section-ai">
+        <h2 class="card__title">AI Detection</h2>
+
+        <div class="setting-row">
+          <div class="setting-row__label">
+            <span>Enable AI Fallback</span>
+            <span class="setting-row__hint">Uses OpenAI to classify unrecognised fields. Only structural metadata is sent — never profile values.</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-ai" />
+            <span class="toggle__slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row" id="api-key-row">
+          <div class="setting-row__label">
+            <span>API Key</span>
+            <span class="setting-row__hint">Stored locally. Never sent to content scripts.</span>
+          </div>
+          <div class="input-group">
+            <input type="password" id="ai-api-key" class="opt-input" placeholder="sk-..." autocomplete="off" />
+            <button class="opt-btn-sm" id="toggle-key-visibility" aria-label="Toggle visibility">👁</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Profile Management ──────────────────────────────────────── -->
+      <section class="card" id="section-profiles">
+        <h2 class="card__title">Profiles</h2>
+        <div id="profiles-list" class="profiles-list"></div>
+      </section>
+
+      <!-- ─── Site Rules ──────────────────────────────────────────────── -->
+      <section class="card" id="section-site-rules">
+        <h2 class="card__title">Site Rules</h2>
+        <p class="card__desc">Configure per-site profile preferences and field overrides.</p>
+
+        <div class="site-rule-form">
+          <input type="text" id="rule-domain" class="opt-input" placeholder="example.com" />
+          <select id="rule-profile" class="opt-select"></select>
+          <button class="opt-btn" id="add-rule-btn">Add Rule</button>
+        </div>
+
+        <div id="rules-list" class="rules-list"></div>
+      </section>
+
+      <!-- ─── Import / Export ─────────────────────────────────────────── -->
+      <section class="card" id="section-data">
+        <h2 class="card__title">Data Management</h2>
+
+        <div class="data-actions">
+          <div class="data-action">
+            <h3>Export</h3>
+            <p>Encrypt and download all profiles and settings.</p>
+            <input type="password" id="export-password" class="opt-input" placeholder="Encryption password" autocomplete="off" />
+            <button class="opt-btn" id="export-btn">Export Data</button>
+          </div>
+
+          <div class="data-action">
+            <h3>Import</h3>
+            <p>Decrypt and restore data from an export file.</p>
+            <input type="password" id="import-password" class="opt-input" placeholder="Decryption password" autocomplete="off" />
+            <input type="file" id="import-file" accept=".sfa" class="opt-file-input" />
+            <button class="opt-btn" id="import-btn">Import Data</button>
+          </div>
+        </div>
+
+        <div class="danger-zone">
+          <h3>Danger Zone</h3>
+          <p>Permanently delete all extension data.</p>
+          <button class="opt-btn opt-btn--danger" id="clear-all-btn">Clear All Data</button>
+        </div>
+      </section>
+
+    </div><!-- /.settings-grid -->
+
+    <!-- Save bar -->
+    <div class="save-bar">
+      <button class="opt-btn opt-btn--primary" id="save-settings-btn">Save Settings</button>
+    </div>
+
+  </div>
+  <script type="module" src="../src/options/options.ts"></script>
+</body>
+</html>
