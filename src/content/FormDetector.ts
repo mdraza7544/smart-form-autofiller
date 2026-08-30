@@ -1,6 +1,7 @@
 import type { FormField } from '../shared/types';
 import { SENSITIVE_INPUT_TYPES, SENSITIVE_KEYWORDS } from '../shared/constants';
 import { buildSelector, findLabelText, getSurroundingText, normalizeText } from '../utils/domHelpers';
+import { GoogleFormsAdapter } from './GoogleFormsAdapter';
 
 // ─── FormDetector ──────────────────────────────────────────────────────────
 // Phase 2: Enhanced detection with radio group awareness, richer context
@@ -17,6 +18,15 @@ export class FormDetector {
    * Scans the DOM and returns all detectable, non-sensitive, visible fields.
    */
   scan(): FormField[] {
+    if (GoogleFormsAdapter.isGoogleForm()) {
+      try {
+        const gFields = GoogleFormsAdapter.scan();
+        if (gFields.length > 0) return gFields;
+      } catch (e) {
+        console.error('[SFA] GoogleFormsAdapter error:', e);
+      }
+    }
+
     this.seenRadioGroups.clear();
 
     const elements = Array.from(

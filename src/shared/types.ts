@@ -1,20 +1,47 @@
 // ─── Field Types ───────────────────────────────────────────────────────────
 
-export type FieldType =
+export type NameFieldType =
   | 'FIRST_NAME'
+  | 'MIDDLE_NAME'
   | 'LAST_NAME'
   | 'FULL_NAME'
-  | 'EMAIL'
-  | 'PHONE'
+  | 'INITIALS';
+
+export type AddressFieldType =
+  | 'FULL_ADDRESS'
   | 'ADDRESS_LINE1'
   | 'ADDRESS_LINE2'
   | 'CITY'
   | 'STATE'
-  | 'COUNTRY'
   | 'ZIP_CODE'
+  | 'COUNTRY';
+
+export type FieldType =
+  | 'EMAIL'
+  | 'PHONE'
+  | 'COUNTRY_CODE'
   | 'DOB'
+  | 'DOB_DAY'
+  | 'DOB_MONTH'
+  | 'DOB_YEAR'
   | 'GENDER'
-  | 'UNKNOWN';
+  | 'SAME_AS_PERMANENT'
+  | 'SAME_AS_BILLING'
+  | 'SAME_AS_SHIPPING'
+  | 'PARENT_NAME'
+  | 'GUARDIAN_NAME'
+  | 'FATHER_NAME'
+  | 'MOTHER_NAME'
+  | 'SCHOOL_NAME'
+  | 'COLLEGE_NAME'
+  | 'UNIVERSITY_NAME'
+  | 'DEPARTMENT_NAME'
+  | 'COURSE_NAME'
+  | 'ROLL_NUMBER'
+  | 'REGISTRATION_NUMBER'
+  | 'UNKNOWN'
+  | NameFieldType
+  | AddressFieldType;
 
 // ─── Profile ───────────────────────────────────────────────────────────────
 
@@ -36,7 +63,7 @@ export interface FormField {
   placeholderAttr: string;
   autocompleteAttr: string;
   ariaLabelAttr: string;
-  tagType: 'INPUT' | 'TEXTAREA' | 'SELECT';
+  tagType: 'INPUT' | 'TEXTAREA' | 'SELECT' | 'GOOGLE_FORM_FIELD';
   inputTypeAttr: string;
   labelText: string;
   surroundingText: string;

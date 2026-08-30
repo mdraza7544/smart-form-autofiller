@@ -46,9 +46,14 @@
     <!-- Profile Form -->
     <form id="profile-form" class="profile-form" novalidate autocomplete="off">
       <div class="field-grid">
+        <h3 class="section-title" style="grid-column: 1 / -1; margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Personal Information</h3>
         <div class="field-group">
           <label class="field-label" for="field-first-name">First Name</label>
           <input class="field-input" type="text" id="field-first-name" name="FIRST_NAME" placeholder="John" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="field-middle-name">Middle Name</label>
+          <input class="field-input" type="text" id="field-middle-name" name="MIDDLE_NAME" placeholder="William" />
         </div>
         <div class="field-group">
           <label class="field-label" for="field-last-name">Last Name</label>
@@ -56,52 +61,121 @@
         </div>
         <div class="field-group field-group--full">
           <label class="field-label" for="field-full-name">Full Name</label>
-          <input class="field-input" type="text" id="field-full-name" name="FULL_NAME" placeholder="John Doe" />
+          <input class="field-input" type="text" id="field-full-name" name="FULL_NAME" placeholder="John William Doe" />
         </div>
-        <div class="field-group">
-          <label class="field-label" for="field-dob">Date of Birth</label>
-          <input class="field-input" type="date" id="field-dob" name="DOB" />
-        </div>
+        
+
         <div class="field-group">
           <label class="field-label" for="field-gender">Gender</label>
           <select class="field-input" id="field-gender" name="GENDER">
             <option value="">Select...</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
+            <option value="Non-binary">Non-binary</option>
             <option value="Other">Other</option>
+            <option value="Prefer not to say">Prefer not to say</option>
           </select>
         </div>
+        
+        <div class="field-group">
+          <label class="field-label" for="field-dob">Date of Birth</label>
+          <input class="field-input" type="date" id="field-dob" name="DOB" />
+        </div>
+
+        <!-- FAMILY INFORMATION -->
+        <h3 class="section-title" style="grid-column: 1 / -1; margin-top: 15px; margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Family Information</h3>
+        
+        <div class="field-group">
+          <label class="field-label">Father's Name</label>
+          <input class="field-input" type="text" name="FATHER_NAME" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Mother's Name</label>
+          <input class="field-input" type="text" name="MOTHER_NAME" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Parent's Name</label>
+          <input class="field-input" type="text" name="PARENT_NAME" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Guardian's Name</label>
+          <input class="field-input" type="text" name="GUARDIAN_NAME" />
+        </div>
+
+        <h3 class="section-title" style="grid-column: 1 / -1; margin-top: 15px; margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Education</h3>
+
+        <div class="field-group">
+          <label class="field-label">School Name</label>
+          <input class="field-input" type="text" name="SCHOOL_NAME" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">College Name</label>
+          <input class="field-input" type="text" name="COLLEGE_NAME" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">University Name</label>
+          <input class="field-input" type="text" name="UNIVERSITY_NAME" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Department Name</label>
+          <input class="field-input" type="text" name="DEPARTMENT_NAME" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Course Name</label>
+          <input class="field-input" type="text" name="COURSE_NAME" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Roll Number</label>
+          <input class="field-input" type="text" name="ROLL_NUMBER" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Registration Number</label>
+          <input class="field-input" type="text" name="REGISTRATION_NUMBER" />
+        </div>
+
+
+        <h3 class="section-title" style="grid-column: 1 / -1; margin-top: 15px; margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Contact</h3>
+
         <div class="field-group field-group--full">
           <label class="field-label" for="field-email">Email</label>
           <input class="field-input" type="email" id="field-email" name="EMAIL" placeholder="john@example.com" />
         </div>
+
         <div class="field-group field-group--full">
-          <label class="field-label" for="field-phone">Phone</label>
+          <label class="field-label" for="field-country-code">Country Code</label>
+          <input class="field-input" type="text" id="field-country-code" name="COUNTRY_CODE" placeholder="+1" />
+        </div>
+        <div class="field-group field-group--full">
+          <label class="field-label" for="field-phone">Phone Number</label>
           <input class="field-input" type="tel" id="field-phone" name="PHONE" placeholder="+1 234 567 8900" />
         </div>
+
+
+        <h3 class="section-title" style="grid-column: 1 / -1; margin-top: 15px; margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Address</h3>
+        
         <div class="field-group field-group--full">
-          <label class="field-label" for="field-address1">Address Line 1</label>
-          <input class="field-input" type="text" id="field-address1" name="ADDRESS_LINE1" placeholder="123 Main Street" />
+          <label class="field-label">Address Line 1</label>
+          <input class="field-input" type="text" name="ADDRESS_LINE1" />
         </div>
         <div class="field-group field-group--full">
-          <label class="field-label" for="field-address2">Address Line 2</label>
-          <input class="field-input" type="text" id="field-address2" name="ADDRESS_LINE2" placeholder="Apt 4B" />
+          <label class="field-label">Address Line 2</label>
+          <input class="field-input" type="text" name="ADDRESS_LINE2" />
         </div>
         <div class="field-group">
-          <label class="field-label" for="field-city">City</label>
-          <input class="field-input" type="text" id="field-city" name="CITY" placeholder="New York" />
+          <label class="field-label">City</label>
+          <input class="field-input" type="text" name="CITY" />
         </div>
         <div class="field-group">
-          <label class="field-label" for="field-state">State</label>
-          <input class="field-input" type="text" id="field-state" name="STATE" placeholder="NY" />
+          <label class="field-label">State</label>
+          <input class="field-input" type="text" name="STATE" />
         </div>
         <div class="field-group">
-          <label class="field-label" for="field-country">Country</label>
-          <input class="field-input" type="text" id="field-country" name="COUNTRY" placeholder="United States" />
+          <label class="field-label">PIN Code</label>
+          <input class="field-input" type="text" name="ZIP_CODE" />
         </div>
         <div class="field-group">
-          <label class="field-label" for="field-zip">ZIP / Postal Code</label>
-          <input class="field-input" type="text" id="field-zip" name="ZIP_CODE" placeholder="10001" />
+          <label class="field-label">Country</label>
+          <input class="field-input" type="text" name="COUNTRY" />
         </div>
 
       </div>

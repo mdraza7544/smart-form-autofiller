@@ -6,29 +6,16 @@ import {
   CONFIDENCE_THRESHOLD,
   SENSITIVE_KEYWORDS,
   SENSITIVE_INPUT_TYPES,
+  NEGATIVE_KEYWORDS,
 } from '../shared/constants';
 import { normalizeText } from '../utils/domHelpers';
 
-// ─── FieldMapper ───────────────────────────────────────────────────────────
-// Phase 2: Multi-signal additive scoring.
-//
-// Each field is evaluated across 6 independent DOM signals.
-// Matching the same FieldType across multiple signals ADDS to the score
-// (capped at 100), rewarding corroboration. The highest-scoring type wins.
-// Sensitive fields are blocked at classification time before any scoring.
-
 export class FieldMapper {
-  /**
-   * Maps each raw FormField to a DetectedField with a FieldType + confidence score.
-   */
   map(fields: FormField[]): DetectedField[] {
     return fields.map(field => this.classify(field));
   }
 
-  // ── Private ─────────────────────────────────────────────────────────
-
   private classify(field: FormField): DetectedField {
-    // Step 14: Sensitive field guard — block at mapper level, not just detector
     if (this.isSensitive(field)) {
       return {
         field,
@@ -38,7 +25,6 @@ export class FieldMapper {
       };
     }
 
-    // Step 13a: Autocomplete attribute — highest confidence, short-circuit
     const autoType = this.matchAutocomplete(field.autocompleteAttr);
     if (autoType !== 'UNKNOWN') {
       return {
@@ -49,15 +35,15 @@ export class FieldMapper {
       };
     }
 
-    // Step 13b: Additive multi-signal scoring
     const scores = this.accumulateScores(field);
     const best = this.pickBest(scores);
 
     if (best.score >= CONFIDENCE_THRESHOLD) {
+      let finalType = best.type;
       return {
         field,
-        matchedType: best.type,
-        confidenceScore: Math.min(best.score, 100), // cap at 100
+        matchedType: finalType as FieldType,
+        confidenceScore: Math.min(best.score, 100),
         detectionSource: 'HEURISTICS',
       };
     }
@@ -70,44 +56,36 @@ export class FieldMapper {
     };
   }
 
-  // ── Step 14: Sensitive Field Guard ───────────────────────────────────
-
   private isSensitive(field: FormField): boolean {
-    // Block by input type first (fastest check)
     if (SENSITIVE_INPUT_TYPES.includes(field.inputTypeAttr)) return true;
 
-    // Block by keyword scan across all text signals
     const combined = normalizeText(
       [field.nameAttr, field.idAttr, field.placeholderAttr, field.labelText, field.ariaLabelAttr].join(' ')
     );
     return SENSITIVE_KEYWORDS.some(kw => combined.includes(kw));
   }
 
-  // ── Step 13: Autocomplete Match ───────────────────────────────────────
+
+
+
 
   private matchAutocomplete(autocomplete: string): FieldType {
     if (!autocomplete) return 'UNKNOWN';
-    const normalized = normalizeText(autocomplete);
-    return (
-      AUTOCOMPLETE_MAP[autocomplete] ??   // exact raw match (e.g. "given-name")
-      AUTOCOMPLETE_MAP[normalized] ??     // normalized match
-      'UNKNOWN'
-    );
+    const tokens = autocomplete.toLowerCase().split(/\s+/);
+    
+    let baseType = 'UNKNOWN';
+    for (const token of tokens) {
+      if (AUTOCOMPLETE_MAP[token]) {
+        baseType = AUTOCOMPLETE_MAP[token];
+        break;
+      }
+    }
+    
+    return baseType as FieldType;
   }
 
-  // ── Step 13: Additive Multi-Signal Score Accumulation ─────────────────
-  //
-  // Each of the 6 signals contributes its FULL weight when it matches.
-  // This means:
-  //   - name="email" (85) + label="Email" (60) = 145 → capped to 100
-  //   - Only label="Email" (60) = 60 → passes threshold
-  //   - Only surroundingText="contact" (30) = 30 → below threshold → UNKNOWN
-  //
-  // A field strongly corroborated across multiple signals gets a much higher
-  // score than one matched by a single weak signal.
-
-  private accumulateScores(field: FormField): Map<FieldType, number> {
-    const scores = new Map<FieldType, number>();
+  private accumulateScores(field: FormField): Map<string, number> {
+    const scores = new Map<string, number>();
 
     const signals: Array<{ text: string; weight: number }> = [
       { text: field.nameAttr,        weight: CONFIDENCE_WEIGHTS.NAME_EXACT       },
@@ -118,19 +96,42 @@ export class FieldMapper {
       { text: field.surroundingText, weight: CONFIDENCE_WEIGHTS.SURROUNDING_TEXT },
     ];
 
+    const standaloneNameKeywords = ['company', 'school', 'college', 'university', 'course', 'department', 'product', 'father', 'mother', 'parent', 'guardian', 'spouse'];
+    const combinedSignalsText = normalizeText(signals.map(s => s.text).join(' '));
+    const hasStandaloneKeyword = standaloneNameKeywords.some(kw => combinedSignalsText.includes(kw));
+    const hasFatherContext = combinedSignalsText.includes('father') || combinedSignalsText.includes('parent');
+    const hasMotherContext = combinedSignalsText.includes('mother') || combinedSignalsText.includes('parent');
+
     for (const { text, weight } of signals) {
       if (!text) continue;
       const normalized = normalizeText(text);
       if (!normalized) continue;
+      if (NEGATIVE_KEYWORDS.some(nkw => normalized.includes(nkw))) continue;
 
       for (const [rawType, keywords] of Object.entries(FIELD_KEYWORDS)) {
-        const type = rawType as FieldType;
-        if (type === 'UNKNOWN') continue;
-        if (!this.matchesKeywords(normalized, keywords)) continue;
+        if (rawType === 'UNKNOWN') continue;
+        
+        // Skip personal names if a standalone context is detected
+        if (hasStandaloneKeyword && ['FIRST_NAME', 'MIDDLE_NAME', 'LAST_NAME', 'FULL_NAME', 'INITIALS'].includes(rawType)) {
+          continue;
+        }
 
-        // ADDITIVE: each corroborating signal adds its weight
-        const current = scores.get(type) ?? 0;
-        scores.set(type, current + weight);
+        let isMatch = this.matchesKeywords(normalized, keywords);
+
+        // Contextual matching for ambiguous abbreviations
+        if (!isMatch) {
+          if (rawType === 'FATHER_NAME' && hasFatherContext) {
+            isMatch = ['f. name', 'f name', 'f.name', 'f/n', 'f/n name', 'f_name', 'fname'].some(kw => normalized.includes(kw));
+          }
+          if (rawType === 'MOTHER_NAME' && hasMotherContext) {
+            isMatch = ['m. name', 'm name', 'm.name', 'm_name', 'mname'].some(kw => normalized.includes(kw));
+          }
+        }
+
+        if (!isMatch) continue;
+
+        const current = scores.get(rawType) ?? 0;
+        scores.set(rawType, current + weight);
       }
     }
 
@@ -141,8 +142,8 @@ export class FieldMapper {
     return keywords.some(kw => normalized.includes(kw));
   }
 
-  private pickBest(scores: Map<FieldType, number>): { type: FieldType; score: number } {
-    let bestType: FieldType = 'UNKNOWN';
+  private pickBest(scores: Map<string, number>): { type: string; score: number } {
+    let bestType: string = 'UNKNOWN';
     let bestScore = 0;
     for (const [type, score] of scores) {
       if (score > bestScore) {
@@ -153,11 +154,6 @@ export class FieldMapper {
     return { type: bestType, score: bestScore };
   }
 
-  // ── Static Utility ────────────────────────────────────────────────────
-
-  /**
-   * Public utility used by FormFiller for a final pre-fill safety check.
-   */
   static containsSensitiveKeyword(text: string): boolean {
     const n = normalizeText(text);
     return SENSITIVE_KEYWORDS.some(kw => n.includes(kw));

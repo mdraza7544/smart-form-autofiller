@@ -66,16 +66,18 @@ export class DOMObserver {
   private isFormRelevant(node: Node): boolean {
     if (!(node instanceof HTMLElement)) return false;
 
-    // Direct match: the node itself is a form control
     if (this.isFormControl(node)) return true;
 
-    // Descendant match: the node contains form controls
-    // querySelector is fast here because we limit to known tags
-    return node.querySelector('input, textarea, select, form') !== null;
+    return node.querySelector('input, textarea, select, form, [role="textbox"], [role="radiogroup"], [role="listbox"], [role="combobox"], [role="checkbox"], [role="listitem"]') !== null;
   }
 
   private isFormControl(el: HTMLElement): boolean {
     const tag = el.tagName?.toUpperCase();
-    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'FORM';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'FORM') return true;
+    
+    const role = el.getAttribute('role');
+    if (role && ['textbox', 'radiogroup', 'listbox', 'combobox', 'checkbox', 'listitem'].includes(role)) return true;
+    
+    return false;
   }
 }

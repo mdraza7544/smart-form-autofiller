@@ -89,34 +89,50 @@ toggleKeyVis.addEventListener('click', () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function renderProfiles(): void {
-  profilesList.innerHTML = '';
+  profilesList.replaceChildren();
 
-  for (const p of profiles) {
+  for (const profile of profiles) {
     const card = document.createElement('div');
     card.className = 'profile-card';
 
-    const fieldCount = Object.keys(p.data).length;
-    const isActive = settings.activeProfileId === p.id;
+    const fieldCount = Object.keys(profile.data).length;
+    const isActive = settings.activeProfileId === profile.id;
 
-    card.innerHTML = `
-      <div class="profile-card__info">
-        <div class="profile-card__name">${escapeHtml(p.label)}</div>
-        <div class="profile-card__meta">${fieldCount} field(s) · Updated ${formatDate(p.updatedAt)}</div>
-      </div>
-      ${isActive ? '<span class="profile-card__badge">Active</span>' : ''}
-    `;
+    const info = document.createElement('div');
+    info.className = 'profile-card__info';
+    
+    const name = document.createElement('div');
+    name.className = 'profile-card__name';
+    name.textContent = profile.label;
+    
+    const meta = document.createElement('div');
+    meta.className = 'profile-card__meta';
+    meta.textContent = `${fieldCount} field(s) · Updated ${formatDate(profile.updatedAt)}`;
+    
+    info.appendChild(name);
+    info.appendChild(meta);
+    card.appendChild(info);
 
-    // Delete button
+    if (isActive) {
+      const badge = document.createElement('span');
+      badge.className = 'profile-card__badge';
+      badge.textContent = 'Active';
+      card.appendChild(badge);
+    }
+
     const delBtn = document.createElement('button');
     delBtn.className = 'rule-row__remove';
     delBtn.textContent = '×';
     delBtn.title = 'Delete profile';
     delBtn.addEventListener('click', async () => {
-      if (profiles.length <= 1) { showBanner('Cannot delete the last profile.', 'error'); return; }
-      await storageService.deleteProfile(p.id);
-      profiles = profiles.filter(x => x.id !== p.id);
+      if (profiles.length <= 1) { 
+        showBanner('Cannot delete the last profile.', 'error'); 
+        return; 
+      }
+      await storageService.deleteProfile(profile.id);
+      profiles = profiles.filter(x => x.id !== profile.id);
       renderProfiles();
-      showBanner(`Deleted "${p.label}".`, 'info');
+      showBanner(`Deleted "${profile.label}".`, 'info');
     });
     card.appendChild(delBtn);
 

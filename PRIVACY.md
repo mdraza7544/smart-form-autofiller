@@ -14,3 +14,9 @@ If you choose to enable the AI Field Detection fallback, the extension will send
 
 ## 4. Encryption
 When exporting your data, it is encrypted using industry-standard AES-256-GCM encryption. The password you set for the export is never saved or transmitted.
+
+## 5. Security & Isolation
+Smart Form Auto-Filler has undergone rigorous penetration testing to ensure maximum privacy:
+- **No Silent Data Extraction:** Your profile data is never passed to the active webpage or content script on page load. The webpage has no access to your data. Data is only sent to the form when you explicitly click "Fill Form" in the extension popup.
+- **XSS & DOM Protection:** The extension uses native DOM value setters instead of dangerous HTML injection APIs (`innerHTML`), entirely neutralizing DOM-based Cross-Site Scripting (XSS) and Prototype Pollution attacks.
+- **Message Spoofing Defense:** The content script strictly verifies that all incoming commands originate from the extension itself, preventing malicious websites from spoofing autofill requests.

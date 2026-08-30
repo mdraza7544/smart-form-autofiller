@@ -206,8 +206,9 @@ function buildMappings(detected: DetectedField[], profile: UserProfile): FieldMa
   // Smart Fallback for Names
   const data = { ...profile.data };
   
+  // Smart Fallback for Names
   if (!data.FULL_NAME && (data.FIRST_NAME || data.LAST_NAME)) {
-    data.FULL_NAME = [data.FIRST_NAME, data.LAST_NAME].filter(Boolean).join(' ');
+    data.FULL_NAME = [data.FIRST_NAME, data.MIDDLE_NAME, data.LAST_NAME].filter(Boolean).join(' ');
   }
   if (!data.FIRST_NAME && data.FULL_NAME) {
     data.FIRST_NAME = data.FULL_NAME.split(' ')[0];
@@ -216,6 +217,63 @@ function buildMappings(detected: DetectedField[], profile: UserProfile): FieldMa
     const parts = data.FULL_NAME.split(' ');
     data.LAST_NAME = parts.length > 1 ? parts.slice(1).join(' ') : '';
   }
+
+  // Synthesize Initials dynamically
+  if (!data.INITIALS) {
+    const f = data.FIRST_NAME || '';
+    const m = data.MIDDLE_NAME || '';
+    const l = data.LAST_NAME || '';
+    data.INITIALS = [f[0], m[0], l[0]]
+      .filter(Boolean)
+      .map(c => c.toUpperCase())
+      .join('');
+  }
+
+  if (data.DOB) {
+    const parts = data.DOB.split('-');
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      if (!data.DOB_YEAR) data.DOB_YEAR = year;
+      if (!data.DOB_MONTH) data.DOB_MONTH = month;
+      if (!data.DOB_DAY) data.DOB_DAY = day;
+    }
+  }
+
+  // Smart Fallback for Phone Number
+  if (data.PHONE && data.COUNTRY_CODE) {
+    const hasCountryCode = detected.some(d => d.matchedType === 'COUNTRY_CODE');
+    if (!hasCountryCode) {
+      data.PHONE = `${data.COUNTRY_CODE} ${data.PHONE}`;
+    }
+  }
+
+  // Unified Address logic
+  const hasLine1 = detected.some(d => d.matchedType === 'ADDRESS_LINE1');
+  const hasLine2 = detected.some(d => d.matchedType === 'ADDRESS_LINE2');
+  const hasCity = detected.some(d => d.matchedType === 'CITY');
+  const hasState = detected.some(d => d.matchedType === 'STATE');
+
+  if (!data.FULL_ADDRESS) {
+    // If the page has components but is missing Line 1, the "Address" field is likely Line 1.
+    if (!hasLine1 && (hasLine2 || hasCity || hasState)) {
+      data.FULL_ADDRESS = data.ADDRESS_LINE1;
+    } else {
+      // Otherwise, assume it's a true full address field.
+      data.FULL_ADDRESS = [
+        data.ADDRESS_LINE1,
+        data.ADDRESS_LINE2,
+        data.CITY,
+        data.STATE,
+        data.ZIP_CODE,
+        data.COUNTRY
+      ].filter(Boolean).join(', ');
+    }
+  }
+
+  // Virtual Checkbox synthesis: Since we only have one address profile, all 'same as' are true.
+  if (!data.SAME_AS_PERMANENT) data.SAME_AS_PERMANENT = 'true';
+  if (!data.SAME_AS_BILLING) data.SAME_AS_BILLING = 'true';
+  if (!data.SAME_AS_SHIPPING) data.SAME_AS_SHIPPING = 'true';
 
   return detected
     .filter(d => { const v = data[d.matchedType]; return v !== undefined && v !== ''; })

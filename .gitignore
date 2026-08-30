@@ -21,3 +21,8 @@ Thumbs.db
 # project planning files
 plan.md
 developmentplan.md
+Phase_1_Architecture_Audit.md
+Final_Security_QA_Report.md
+
+# extension exports
+*.sfa
