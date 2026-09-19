@@ -31,6 +31,18 @@
   --tr: 150ms ease;
 }
 
+:root[data-theme="LIGHT"] {
+  --c-bg:         #ffffff;
+  --c-surface:    #f8fafc;
+  --c-surface-2:  #f1f5f9;
+  --c-border:     #cbd5e1;
+  --c-text:       #0f172a;
+  --c-text-muted: #64748b;
+  --c-accent:     #4f46e5;
+  --c-accent-hover:#4338ca;
+  --c-accent-dim: rgba(79, 70, 229, 0.1);
+}
+
 /* ── Base ───────────────────────────────────────────────────────────────── */
 html { font-size: var(--fs-base); }
 

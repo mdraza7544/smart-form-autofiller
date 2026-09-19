@@ -51,33 +51,6 @@
         </div>
       </section>
 
-      <!-- ─── AI Configuration ────────────────────────────────────────── -->
-      <section class="card" id="section-ai">
-        <h2 class="card__title">AI Detection</h2>
-
-        <div class="setting-row">
-          <div class="setting-row__label">
-            <span>Enable AI Fallback</span>
-            <span class="setting-row__hint">Uses OpenAI to classify unrecognised fields. Only structural metadata is sent — never profile values.</span>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="toggle-ai" />
-            <span class="toggle__slider"></span>
-          </label>
-        </div>
-
-        <div class="setting-row" id="api-key-row">
-          <div class="setting-row__label">
-            <span>API Key</span>
-            <span class="setting-row__hint">Stored locally. Never sent to content scripts.</span>
-          </div>
-          <div class="input-group">
-            <input type="password" id="ai-api-key" class="opt-input" placeholder="sk-..." autocomplete="off" />
-            <button class="opt-btn-sm" id="toggle-key-visibility" aria-label="Toggle visibility">👁</button>
-          </div>
-        </div>
-      </section>
-
       <!-- ─── Profile Management ──────────────────────────────────────── -->
       <section class="card" id="section-profiles">
         <h2 class="card__title">Profiles</h2>

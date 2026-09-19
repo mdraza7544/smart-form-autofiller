@@ -19,6 +19,19 @@
   --tr: 160ms ease;
 }
 
+:root[data-theme="LIGHT"] {
+  --c-bg:         #f8fafc;
+  --c-surface:    #ffffff;
+  --c-surface-2:  #f1f5f9;
+  --c-surface-3:  #e2e8f0;
+  --c-border:     #cbd5e1;
+  --c-text:       #0f172a;
+  --c-text-muted: #64748b;
+  --c-accent:     #4f46e5;
+  --c-accent-hover:#4338ca;
+  --c-accent-dim: rgba(79, 70, 229, 0.1);
+}
+
 body {
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
   font-size: 13px;
@@ -67,17 +80,26 @@ body {
 
 /* ── Banner ─────────────────────────────────────────────────────────────── */
 .opt-banner {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
   padding: 10px 16px;
   border-radius: var(--r-md);
   font-size: 12px;
   font-weight: 500;
-  margin-bottom: 16px;
-  transition: opacity var(--tr);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  transition: opacity var(--tr), transform var(--tr);
 }
-.opt-banner--hidden  { display: none; }
-.opt-banner--success { background: rgba(16,185,129,.12); color: var(--c-success); }
-.opt-banner--error   { background: rgba(239,68,68,.12);  color: var(--c-error);   }
-.opt-banner--info    { background: var(--c-accent-dim);  color: var(--c-accent-hover); }
+.opt-banner--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -10px);
+}
+.opt-banner--success { background: rgba(16,185,129,.95); color: #fff; }
+.opt-banner--error   { background: rgba(239,68,68,.95);  color: #fff; }
+.opt-banner--info    { background: rgba(99,102,241,.95); color: #fff; }
 
 /* ── Settings Grid ──────────────────────────────────────────────────────── */
 .settings-grid {
@@ -218,6 +240,7 @@ body {
 }
 .opt-btn--primary:hover {
   background: var(--c-accent-hover);
+  color: #fff;
   box-shadow: 0 4px 16px rgba(99,102,241,.3);
 }
 
@@ -228,6 +251,7 @@ body {
 .opt-btn--danger:hover {
   background: rgba(239,68,68,.12);
   border-color: var(--c-error);
+  color: var(--c-error);
 }
 
 .opt-btn-sm {
@@ -377,6 +401,7 @@ body {
 .save-bar {
   position: fixed;
   bottom: 0; left: 0; right: 0;
+  z-index: 100;
   display: flex;
   justify-content: center;
   padding: 14px 24px;
@@ -387,4 +412,5 @@ body {
   font-size: 13px;
   font-weight: 600;
   border-radius: var(--r-md);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }

@@ -73,7 +73,7 @@ export interface DetectedField {
   field: FormField;
   matchedType: FieldType;
   confidenceScore: number;   // 0 – 100
-  detectionSource: 'HEURISTICS' | 'AI' | 'AUTOCOMPLETE' | 'NONE';
+  detectionSource: 'HEURISTICS' | 'AUTOCOMPLETE' | 'NONE';
 }
 
 // ─── Field Mapping ─────────────────────────────────────────────────────────
@@ -99,8 +99,6 @@ export interface SiteRule {
 
 export interface ExtensionSettings {
   activeProfileId: string | null;
-  aiEnabled: boolean;
-  aiApiKey: string | null;
   autoDetectEnabled: boolean;
   theme: 'LIGHT' | 'DARK' | 'SYSTEM';
 }
@@ -115,16 +113,6 @@ export interface FillResult {
   errors: Array<{ fieldId: string; error: string }>;
 }
 
-// ─── AI ────────────────────────────────────────────────────────────────────
-
-export interface AIFieldDetectionResult {
-  predictedFields: Array<{
-    fieldId: string;
-    predictedType: FieldType;
-    explanation?: string;
-  }>;
-}
-
 // ─── Messaging ─────────────────────────────────────────────────────────────
 
 export type MessageType =
@@ -132,7 +120,6 @@ export type MessageType =
   | 'DETECT_FORM'
   | 'FILL_FORM'
   | 'SHOW_PREVIEW'
-  | 'REQUEST_AI_CLASSIFICATION'
   | 'SAVE_PROFILE'
   | 'GET_SETTINGS';
 
@@ -158,10 +145,7 @@ export interface ShowPreviewMessage extends BaseMessage {
   mappings: FieldMapping[];
 }
 
-export interface RequestAIClassificationMessage extends BaseMessage {
-  type: 'REQUEST_AI_CLASSIFICATION';
-  fields: FormField[];
-}
+
 
 export interface SaveProfileMessage extends BaseMessage {
   type: 'SAVE_PROFILE';
@@ -177,6 +161,5 @@ export type ExtensionMessage =
   | DetectFormMessage
   | FillFormMessage
   | ShowPreviewMessage
-  | RequestAIClassificationMessage
   | SaveProfileMessage
   | GetSettingsMessage;

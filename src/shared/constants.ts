@@ -118,8 +118,6 @@ export const NEGATIVE_KEYWORDS: readonly string[] = [
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   activeProfileId: null,
-  aiEnabled: false,
-  aiApiKey: null,
   autoDetectEnabled: true,
   theme: 'SYSTEM',
 };

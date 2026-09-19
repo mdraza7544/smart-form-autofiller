@@ -1,11 +1,8 @@
 import type { ExtensionSettings, UserProfile } from '../shared/types';
 import { storageService } from '../shared/storage';
-import { AIService } from './aiService';
 import { DEFAULT_SETTINGS } from '../shared/constants';
 
 // ─── Background Service Worker ─────────────────────────────────────────────
-
-const aiService = new AIService();
 
 // Initialize defaults on first install
 chrome.runtime.onInstalled.addListener(async () => {
@@ -46,17 +43,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         break;
       }
 
-      // Phase 3: AI classification — routed through background to protect API key
-      case 'REQUEST_AI_CLASSIFICATION': {
-        const settings = await storageService.getSettings();
-        if (!settings.aiEnabled || !settings.aiApiKey) {
-          sendResponse({ predictedFields: [] });
-          break;
-        }
-        const result = await aiService.classify(message.fields, settings.aiApiKey);
-        sendResponse(result);
-        break;
-      }
 
       default:
         sendResponse(null);

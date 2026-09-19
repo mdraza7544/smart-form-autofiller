@@ -7,10 +7,6 @@ import { securityService } from '../shared/security';
 const optBanner       = document.getElementById('opt-banner')         as HTMLDivElement;
 const toggleAutofill  = document.getElementById('toggle-autofill')    as HTMLInputElement;
 const themeSelect     = document.getElementById('theme-select')       as HTMLSelectElement;
-const toggleAi        = document.getElementById('toggle-ai')          as HTMLInputElement;
-const aiApiKey        = document.getElementById('ai-api-key')         as HTMLInputElement;
-const toggleKeyVis    = document.getElementById('toggle-key-visibility') as HTMLButtonElement;
-const apiKeyRow       = document.getElementById('api-key-row')        as HTMLDivElement;
 const profilesList    = document.getElementById('profiles-list')      as HTMLDivElement;
 const ruleDomainInput = document.getElementById('rule-domain')        as HTMLInputElement;
 const ruleProfileSel  = document.getElementById('rule-profile')       as HTMLSelectElement;
@@ -32,19 +28,20 @@ let siteRules: SiteRule[] = [];
 
 // ─── Init ─────────────────────────────────────────────────────────────────
 
+function applyTheme(theme: string): void {
+  const resolved = theme === 'SYSTEM' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'DARK' : 'LIGHT') : theme;
+  document.documentElement.setAttribute('data-theme', resolved);
+}
+
 async function init(): Promise<void> {
   settings  = await storageService.getSettings();
+  applyTheme(settings.theme);
   profiles  = await storageService.getProfiles();
   siteRules = await storageService.getSiteRules();
 
   // General
   toggleAutofill.checked = settings.autoDetectEnabled;
   themeSelect.value = settings.theme;
-
-  // AI
-  toggleAi.checked = settings.aiEnabled;
-  aiApiKey.value = settings.aiApiKey ?? '';
-  updateApiKeyVisibility();
 
   // Profiles
   renderProfiles();
@@ -61,28 +58,13 @@ async function init(): Promise<void> {
 saveSettingsBtn.addEventListener('click', async () => {
   settings.autoDetectEnabled = toggleAutofill.checked;
   settings.theme = themeSelect.value as ExtensionSettings['theme'];
-  settings.aiEnabled = toggleAi.checked;
-  settings.aiApiKey = aiApiKey.value.trim() || null;
+
+  applyTheme(settings.theme);
 
   await storageService.saveSettings(settings);
   showBanner('Settings saved.', 'success');
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// AI CONFIGURATION
-// ═══════════════════════════════════════════════════════════════════════════
-
-toggleAi.addEventListener('change', () => updateApiKeyVisibility());
-
-function updateApiKeyVisibility(): void {
-  apiKeyRow.style.display = toggleAi.checked ? 'flex' : 'none';
-}
-
-toggleKeyVis.addEventListener('click', () => {
-  const isPassword = aiApiKey.type === 'password';
-  aiApiKey.type = isPassword ? 'text' : 'password';
-  toggleKeyVis.textContent = isPassword ? '🙈' : '👁';
-});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PROFILE MANAGEMENT

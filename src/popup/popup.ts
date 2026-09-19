@@ -22,7 +22,15 @@ let currentProfile: UserProfile | null = null;
 
 // ─── Init ─────────────────────────────────────────────────────────────────
 
+function applyTheme(theme: string): void {
+  const resolved = theme === 'SYSTEM' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'DARK' : 'LIGHT') : theme;
+  document.documentElement.setAttribute('data-theme', resolved);
+}
+
 async function init(): Promise<void> {
+  const settings = await storageService.getSettings();
+  applyTheme(settings.theme);
+
   profiles = await storageService.getProfiles();
 
   if (profiles.length === 0) {
@@ -33,7 +41,6 @@ async function init(): Promise<void> {
     await storageService.saveSettings({ ...settings, activeProfileId: newP.id });
   }
 
-  const settings = await storageService.getSettings();
   renderProfileSelect(settings.activeProfileId);
 
   currentProfile = profiles.find(p => p.id === settings.activeProfileId) ?? profiles[0];
