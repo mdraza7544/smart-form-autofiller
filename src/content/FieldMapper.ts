@@ -12,7 +12,49 @@ import { normalizeText } from '../utils/domHelpers';
 
 export class FieldMapper {
   map(fields: FormField[]): DetectedField[] {
-    return fields.map(field => this.classify(field));
+    const results = fields.map(field => this.classify(field));
+
+    // A full address must fill at most one field per page: when several
+    // detected fields match FULL_ADDRESS, only the highest-confidence one
+    // keeps its mapping and the rest are demoted to UNKNOWN so they are
+    // safely skipped instead of receiving the street address as a wrong
+    // duplicate value (e.g. an "Apt, Suite" line). Other single-value types
+    // are intentionally NOT deduped: two genuine email or phone fields on
+    // one page (e.g. separate contact and registration forms) both deserve
+    // the same profile value, and an identical value is semantically correct
+    // there. Radio and checkbox controls are always excluded — each control
+    // is a distinct option, and FormFiller selects the matching option by
+    // value rather than filling every control in a group.
+    const isGroupControl = (f: FormField) =>
+      f.tagType === 'INPUT' && (f.inputTypeAttr === 'radio' || f.inputTypeAttr === 'checkbox');
+
+    const candidates = results.filter(
+      r => r.matchedType === 'FULL_ADDRESS' && !isGroupControl(r.field)
+    );
+
+    const counts = new Map<string, number>();
+    for (const r of candidates) {
+      counts.set(r.matchedType, (counts.get(r.matchedType) ?? 0) + 1);
+    }
+
+    const demoted = new Set<DetectedField>();
+    for (const [type, count] of counts) {
+      if (count <= 1) continue;
+      const group = candidates.filter(r => r.matchedType === type);
+      let best = group[0];
+      for (const r of group) {
+        if (r.confidenceScore > best.confidenceScore) best = r;
+      }
+      for (const r of group) {
+        if (r !== best) demoted.add(r);
+      }
+    }
+
+    return results.map(r =>
+      demoted.has(r)
+        ? { field: r.field, matchedType: 'UNKNOWN' as FieldType, confidenceScore: 0, detectionSource: 'NONE' as const }
+        : r
+    );
   }
 
   private classify(field: FormField): DetectedField {
@@ -96,6 +138,16 @@ export class FieldMapper {
       { text: field.surroundingText, weight: CONFIDENCE_WEIGHTS.SURROUNDING_TEXT },
     ];
 
+    // HTML5 input type is a strong generic signal (e.g. type="email" / type="tel").
+    // Only specific, well-defined types contribute — type="text" is too generic to use.
+    const typeSignalText =
+      field.inputTypeAttr === 'email' ? 'email' :
+      field.inputTypeAttr === 'tel'   ? 'tel telephone' :
+      '';
+    if (typeSignalText) {
+      signals.push({ text: typeSignalText, weight: CONFIDENCE_WEIGHTS.LABEL });
+    }
+
     const standaloneNameKeywords = ['company', 'school', 'college', 'university', 'course', 'department', 'product', 'father', 'mother', 'parent', 'guardian', 'spouse'];
     const combinedSignalsText = normalizeText(signals.map(s => s.text).join(' '));
     const hasStandaloneKeyword = standaloneNameKeywords.some(kw => combinedSignalsText.includes(kw));
@@ -132,6 +184,27 @@ export class FieldMapper {
 
         const current = scores.get(rawType) ?? 0;
         scores.set(rawType, current + weight);
+      }
+    }
+
+    // Specific name evidence outranks the generic FULL_NAME signal: the bare
+    // 'name' keyword also matches inside "first name" / "last name" / a
+    // section header reading just "Name", so a First/Last name field must
+    // never be captured as a full-name field.
+    const specificNameTypes: string[] = ['FIRST_NAME', 'MIDDLE_NAME', 'LAST_NAME'];
+    if (scores.has('FULL_NAME') && specificNameTypes.some(t => scores.has(t))) {
+      scores.delete('FULL_NAME');
+    }
+
+    // Radio groups: a radio whose label/value wording indicates a gender choice
+    // (Male / Female / non-binary) maps to GENDER even when the group name carries
+    // no hint (e.g. name="radiooptions"). Word-boundary match avoids false hits.
+    if (field.tagType === 'INPUT' && field.inputTypeAttr === 'radio') {
+      const radioSignal = normalizeText(
+        [field.labelText, field.ariaLabelAttr, field.nameAttr, field.idAttr, field.surroundingText].join(' ')
+      );
+      if (/(^|\s)(male|female|nonbinary)(\s|$)/.test(radioSignal)) {
+        scores.set('GENDER', (scores.get('GENDER') ?? 0) + CONFIDENCE_WEIGHTS.LABEL);
       }
     }
 

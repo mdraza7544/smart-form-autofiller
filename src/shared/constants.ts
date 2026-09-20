@@ -111,7 +111,7 @@ export const SENSITIVE_KEYWORDS: readonly string[] = [
 ] as const;
 
 export const NEGATIVE_KEYWORDS: readonly string[] = [
-  'model', 'subject', 'previous', 'destination', 'pickup', 'url', 'website', 'ip address', 'email address', 'company address', 'office address', 'destination address', 'pickup address'
+  'model', 'subject', 'previous', 'destination', 'pickup', 'url', 'website', 'ip address', 'company address', 'office address', 'destination address', 'pickup address'
 ] as const;
 
 // ─── Default Settings ──────────────────────────────────────────────────────

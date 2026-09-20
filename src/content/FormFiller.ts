@@ -83,6 +83,14 @@ export class FormFiller {
     if (parts.length !== 3) return value;
     const [year, month, day] = parts;
 
+    // Mimic the field's own format when it already displays a parseable date
+    // (e.g. "19 Sep 2026" -> "15 May 1990"). Falls back to context hints.
+    const current = el.value.trim();
+    if (current) {
+      const mimicked = this.formatLikeTemplate(current, year, month, day);
+      if (mimicked) return mimicked;
+    }
+
     const context = [
       el.placeholder,
       el.labels?.[0]?.textContent ?? '',
@@ -102,6 +110,58 @@ export class FormFiller {
 
     // Default return original
     return value;
+  }
+
+  /**
+   * Renders a Y-M-D value using the same shape as an observed date string
+   * (e.g. "19 Sep 2026", "Sep 19, 2026", "19.09.2026"). Returns null when the
+   * template cannot be recognised with confidence.
+   */
+  private formatLikeTemplate(template: string, year: string, month: string, day: string): string | null {
+    const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'];
+    const monthFromName = (t: string): number | null => {
+      const i = MONTHS.indexOf(t.toLowerCase().replace(/\.$/, ''));
+      return i >= 0 ? i + 1 : null;
+    };
+    const pad = (n: string) => (n.length === 2 && n.startsWith('0') ? n : String(Number(n)));
+
+    let m = template.match(/^(\d{1,2})[\s\-]+([A-Za-z]{3,9}),?[\s\-]+(\d{4})$/);
+    if (m) {
+      const mon = monthFromName(m[2]);
+      if (mon) {
+        const name = MONTHS[mon - 1];
+        // Preserve the template's month casing: "Sep" -> "Sep", "SEP" -> "SEP"
+        const base = m[2].length > 3 ? name : name.slice(0, 3);
+        const styled =
+          m[2] === m[2].toUpperCase() && m[2].length > 2 ? base.toUpperCase()
+          : m[2][0] === m[2][0].toUpperCase() ? base[0].toUpperCase() + base.slice(1)
+          : base;
+        return `${pad(day)} ${styled} ${year}`;
+      }
+    }
+    m = template.match(/^([A-Za-z]{3,9}),?\s+(\d{1,2}),?\s+(\d{4})$/);
+    if (m) {
+      const mon = monthFromName(m[1]);
+      if (mon) {
+        const name = MONTHS[mon - 1];
+        const d = m[2].length === 2 && m[2].startsWith('0') ? String(Number(day)).padStart(2, '0') : String(Number(day));
+        return `${m[1].length > 3 ? name : name.slice(0, 3)} ${d}, ${year}`;
+      }
+    }
+    m = template.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/);
+    if (m) {
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    m = template.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+    if (m) {
+      const a = Number(m[1]);
+      const b = Number(m[2]);
+      if (a > 12 && b <= 12) return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`; // dd.mm.yyyy
+      if (b > 12 && a <= 12) return `${month.padStart(2, '0')}/${day.padStart(2, '0')}/${year}`; // mm/dd/yyyy
+      return null; // ambiguous numeric order — let context hints decide
+    }
+    return null;
   }
 
   private fillTextArea(el: HTMLTextAreaElement, value: string): void {
@@ -139,6 +199,19 @@ export class FormFiller {
     const target = targetValue.toLowerCase().trim();
 
     if (oText === target || oVal === target) return true;
+
+    // "male" and "female" are substrings of each other, so raw substring
+    // matching would let one gender word select the opposite option
+    // (e.g. "female".includes("male") === true). When the target word and
+    // the option word belong to different gender groups, only the exact
+    // match above or the gender group checks below may decide the match.
+    const isMaleWord = (s: string) => ['male', 'm', 'man'].includes(s);
+    const isFemaleWord = (s: string) => ['female', 'f', 'woman'].includes(s);
+    const genderConflict =
+      (isMaleWord(target) && (isFemaleWord(oText) || isFemaleWord(oVal))) ||
+      (isFemaleWord(target) && (isMaleWord(oText) || isMaleWord(oVal)));
+    if (genderConflict) return false;
+
     if (oText.includes(target) || oVal.includes(target)) return true;
     if (target.includes(oText) && oText.length > 2) return true;
     if (target.includes(oVal) && oVal.length > 2) return true;
